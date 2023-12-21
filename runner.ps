@@ -1,0 +1,7 @@
+docker run -td --name lambda_docker amazon/aws-lambda-python:latest
+docker cp ./requirements.txt lambda_docker:/
+docker start lambda_docker
+docker exec -i lambda_docker /bin/bash > ./docker_install.sh
+docker cp lambda_docker:/python.zip python.zip
+docker stop lambda_docker
+docker rm lambda_docker
