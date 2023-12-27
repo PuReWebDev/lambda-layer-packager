@@ -1,7 +1,24 @@
-docker run -td --name lambda_docker amazon/aws-lambda-python:latest
-docker cp ./requirements.txt lambda_docker:/
-docker start lambda_docker
-docker exec -i lambda_docker /bin/bash > ./docker_install.sh
-docker cp lambda_docker:/python.zip python.zip
-docker stop lambda_docker
-docker rm lambda_docker
+# PowerShell script equivalent to the bash script
+
+# Set the directory where the Dockerfile and requirements.txt are located
+$DIRECTORY = Get-Location
+
+# Change it as per your requirement
+$LAYER_NAME = "requests-layer"
+
+# Build the Docker image
+docker build -t lambda-layer $DIRECTORY
+
+# Run the Docker container to create the layer
+docker run --name lambda-layer-container -v "${DIRECTORY}:/app" lambda-layer
+
+# create layers directory, if not created.
+if (!(Test-Path -Path "$DIRECTORY\layers")) {
+    New-Item -ItemType Directory -Force -Path "$DIRECTORY\layers"
+}
+
+# Move the zip file in layers directory.
+Move-Item -Path "$DIRECTORY\$LAYER_NAME.zip" -Destination "$DIRECTORY\layers\$LAYER_NAME.zip"
+
+# Stop the container
+docker stop lambda-layer-container
