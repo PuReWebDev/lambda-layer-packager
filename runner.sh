@@ -1,10 +1,30 @@
-container_name=lambda_docker
-docker_image=amazon/aws-lambda-python:latest
-docker run -td --name $container_name $docker_image
-docker cp ./requirements.txt $container_name:/
-docker start $container_name
-docker exec -i $container_name /bin/bash < ./docker_install.sh
-docker cp $container_name:/python.zip python.zip
-docker stop $container_name
-docker rm $container_name
-```
+#!/bin/bash
+
+# Set the directory where the Dockerfile and requirements.txt are located
+DIRECTORY="$(pwd)"
+
+# Change it as per your requirement
+LAYER_NAME="requests-layer"
+
+# Build the Docker image
+docker build -t lambda-layer "$DIRECTORY"
+
+# Run the Docker container to create the layer
+docker run --name lambda-layer-container -v "$DIRECTORY:/app" lambda-layer
+
+# create layers directory, if not created.
+
+mkdir -p layers
+
+# Move the zip file in layers directory.
+
+mv "$DIRECTORY/$LAYER_NAME.zip" "$DIRECTORY/layers/$LAYER_NAME.zip"
+
+# Stop the conainer
+docker stop lambda-layer-container
+
+# Remove the running conainer
+docker rm lambda-layer-container
+
+# Cleanup: remove the Docker image
+docker rmi --force lambda-layer
